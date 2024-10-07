@@ -1,6 +1,6 @@
 # gRPC Microservices Project with GraphQL API
 
-![go-grpc-grapqhl-microservices](./assets/thumbnail.png)
+![go-grpc-grapqhl-microservices](./assets/thumbnail.jpg)
 
 Follow along with my youtube video - https://www.youtube.com/watch?v=5UIh1dV7aZ8&t=1346s
 
