@@ -1,5 +1,9 @@
 # gRPC Microservices Project with GraphQL API
 
+![go-grpc-grapqhl-microservices](./assets/thumbnail.png)
+
+Follow along with my youtube video - https://www.youtube.com/watch?v=5UIh1dV7aZ8&t=1346s
+
 This project demonstrates a microservices architecture using gRPC for inter-service communication and GraphQL as the API gateway. It includes services for account management, product catalog, and order processing.
 
 Note from akhil - I built this project with the latest GO version and packages, but in this particular code - I have reverted to an older version of GO - why? Across all my production apps, I'm using old versions of GO - simply for more stability and also because I can easy fix if a new issue shows up - many issues prop up in projects with multiple moving parts (and this project has many of them - grpc, graphql, postgres, docker compose, elastisearch and GO) because each of the moving parts keep updating.
