@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-account-service
+  namespace: ecommerce-app
+spec:
+  selector:
+    app: backend-account-deployment
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer

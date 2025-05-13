@@ -1,0 +1,25 @@
+# virtual-service.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: graphql-virtualservice
+  namespace: ecommerce-app
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - backend-graphql-gateway
+  http:
+    - route:
+        - destination:
+            host: backend-graphql-service
+            subset: v1
+            port:
+              number: 80
+          weight: 30
+        - destination:
+            host: backend-graphql-service
+            subset: v2
+            port:
+              number: 80
+          weight: 70

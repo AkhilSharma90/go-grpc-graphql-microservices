@@ -1,1 +1,42 @@
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Crash log files
+crash.log
+./terraform-EC2/.terraform
+./terraform-EC2/.terraform.lock.hcl
+./terraform-EC2/terraform.tfstate.backup
+./terraform-EC2/terraform.tfstate
+# Terraform variable files
+*.tfvars
+*.tfvars.json
+
+*.exe
+*.lock.hcl
+*.tfstate
+*./.terraform
+*.terraform.tfstate.backup
+# Override files (used for machine-specific or temporary configurations)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Generated files
+.terraform/
+.terraform.lock.hcl
+
+# Sensitive or environment-specific files
+terraform.tfvars
+credentials.tfvars
+secret.tfvars
+
+# Ignore temporary editor or IDE files
+*.swp
+*.bak
+*.tmp
 .idea/
+.vscode/
+.DS_Store
+Thumbs.db

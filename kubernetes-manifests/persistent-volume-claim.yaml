@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: account-pvc
+  namespace: ecommerce-app  # Match with PV namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "gp2"  # Match with PV
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: order-pvc
+  namespace: ecommerce-app  # Match with PV namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "gp2"  # "default" for Azure "standard" for GCP and "gp2" for AWS
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: graphql-v1-pvc
+  namespace: ecommerce-app  # Match with PV namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "gp2"  # Match with PV
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: graphql-v2-pvc
+  namespace: ecommerce-app  # Match with PV namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "gp2"  # Match with PV
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: catalog-pvc
+  namespace: ecommerce-app  # Match with PV namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "gp2"  # Match with PV
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-pvc
+  namespace: ecommerce-app  # Match with PV namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "gp2"  # Match with PV
+  resources:
+    requests:
+      storage: 1Gi
+
+

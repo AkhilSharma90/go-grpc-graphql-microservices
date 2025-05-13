@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-graphql-v1
+  namespace: ecommerce-app
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1         
+      maxUnavailable: 25%   
+  selector:
+    matchLabels:
+      app: backend-graphql
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: backend-graphql
+        version: v1
+    spec:
+      securityContext:
+        runAsUser: 1000 
+        fsGroup: 1000  
+      containers:
+        - name: backend-graphql
+          image: sujalsharma/backend-graphql-deployment:3
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: ecommerce-config
+          volumeMounts:
+            - name: graphql-v1-pv
+              mountPath: /data/db
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "25m"     
+            limits:
+              memory: "128Mi" 
+              cpu: "50m"
+          livenessProbe:
+            httpGet:
+              path: /playground
+              port: 8080
+            initialDelaySeconds: 30  
+            periodSeconds: 10        
+          readinessProbe:
+            httpGet:
+              path: /playground
+              port: 8080
+            initialDelaySeconds: 30  
+            periodSeconds: 10      
+      volumes:
+        - name: graphql-v1-pv
+          persistentVolumeClaim:
+            claimName: graphql-v1-pvc

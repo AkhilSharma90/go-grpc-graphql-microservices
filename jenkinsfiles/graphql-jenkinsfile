@@ -1,0 +1,163 @@
+pipeline {
+    agent any
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+        REPOSITORY_URI = "sujalsharma"
+        imageName = "backend-graphql-deployment"
+        imageTag = "vx${BUILD_NUMBER}"
+        REPO_NAME = "go-grpc-graphql-microservices"
+    }
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+        stage('Checkout Code') {
+            steps {
+                git branch: 'features/cloud-and-devops-features', credentialsId: 'github-cred', url: 'https://github.com/sujalsharmaa/go-grpc-graphql-microservices.git'
+            }
+        }
+        stage('Sonarqube Analysis') {
+            steps {
+                dir('graphql/') {
+                    withSonarQubeEnv('sonar-server') {
+                        sh ''' $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectName=graphql-backend \
+                        -Dsonar.projectKey=graphql-backend '''
+                    }
+                }
+            }
+        }
+        stage('Trivy File Scan') {
+            steps {
+                dir('go-grpc-graphql-microservices/graphql') {
+                    sh 'trivy fs . > trivyfs-${BUILD_NUMBER}.txt'
+                }
+            }
+        }
+        stage('Docker Image Build and Push') {
+            steps {
+                script {
+                    def dockerRegistry = "docker.io"
+                    echo "Building Docker Image: ${imageName}:${imageTag}"
+
+                    dir('./') {
+                        sh 'docker system prune -f || true'
+                        sh "docker build -f graphql/app.dockerfile -t ${REPOSITORY_URI}/${imageName}:${imageTag} ."
+
+                        withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                            sh '''
+                            echo "$DOCKER_PASSWORD" | docker login ${dockerRegistry} -u "$DOCKER_USERNAME" --password-stdin
+                            docker push ${REPOSITORY_URI}/${imageName}:${imageTag}
+                            docker logout
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+        stage('Trivy Image Scan') {
+            steps {
+                sh "trivy image ${REPOSITORY_URI}/${imageName}:${imageTag} > trivyimage-${BUILD_NUMBER}.txt"
+            }
+        }
+        stage('Update Dev Deployment File') {
+            environment {
+                GIT_REPO_NAME = "go-grpc-graphql-microservices"
+                GIT_USER_NAME = "sujalsharmaa"
+            }
+            steps {
+                dir('./kubernetes-manifests/dev-k8s-manifests') {
+                    withCredentials([string(credentialsId: 'github-cred', variable: 'GITHUB_TOKEN')]) {
+                        sh '''
+                            git config user.email "sujalsharma151@gmail.com"
+                            git config user.name "sujalsharmaa"
+                            BUILD_NUMBER=${BUILD_NUMBER}
+                            echo $BUILD_NUMBER
+                            imageTag=$(grep -oP '(?<=backend-graphql-deployment:)[^ ]+' backend-graphql-deployment.yaml)
+                            echo $imageTag
+                            sed -i "s|${REPOSITORY_URI}/${imageName}:${imageTag}|${REPOSITORY_URI}/${imageName}:${BUILD_NUMBER}|" backend-graphql-deployment.yaml
+                            git add backend-graphql-deployment.yaml
+                            git commit -m "Update deployment Image to version ${BUILD_NUMBER}"
+                            git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${REPO_NAME} HEAD:features/cloud-and-devops-features
+                        '''
+                    }
+                }
+            }
+        }
+        stage('Manual Approval for Production') {
+            steps {
+                input message: 'Should we proceed with deploying to production?', ok: 'Deploy to Production'
+            }
+        }
+        stage('Update Production Deployment File') {
+            environment {
+                GIT_REPO_NAME = "go-grpc-graphql-microservices"
+                GIT_USER_NAME = "sujalsharmaa"
+            }
+            steps {
+                dir('./kubernetes-manifests/production-k8s-manifests') {
+                    withCredentials([string(credentialsId: 'github-cred', variable: 'GITHUB_TOKEN')]) {
+                        sh '''
+                            git config user.email "sujalsharma151@gmail.com"
+                            git config user.name "sujalsharmaa"
+                            BUILD_NUMBER=${BUILD_NUMBER}
+                            echo $BUILD_NUMBER
+                            imageTag=$(grep -oP '(?<=backend-graphql-deployment:)[^ ]+' backend-graphql-deployment.yaml)
+                            echo $imageTag
+                            sed -i "s|${REPOSITORY_URI}/${imageName}:${imageTag}|${REPOSITORY_URI}/${imageName}:${BUILD_NUMBER}|" backend-graphql-deployment.yaml
+                            git add backend-graphql-deployment.yaml
+                            git commit -m "Update deployment Image to version ${BUILD_NUMBER}"
+                            git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${REPO_NAME} HEAD:features/cloud-and-devops-features
+                        '''
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                def jobName = env.JOB_NAME
+                def buildNumber = env.BUILD_NUMBER
+                def pipelineStatus = currentBuild.result ?: 'UNKNOWN'
+                def bannerColor = pipelineStatus.toUpperCase() == 'SUCCESS' ? 'green' : 'red'
+                def textColor = 'white'
+
+                def body = """
+                    <html>
+                    <body style="font-family: Arial, sans-serif; line-height: 1.6; background-color: #f9f9f9; padding: 20px;">
+                        <div style="max-width: 600px; margin: auto; border: 4px solid ${bannerColor}; border-radius: 8px; overflow: hidden; background-color: #fff;">
+                            <header style="background-color: ${bannerColor}; color: ${textColor}; padding: 10px; text-align: center;">
+                                <h1 style="margin: 0;">${jobName}</h1>
+                                <h2 style="margin: 0;">Build #${buildNumber}</h2>
+                            </header>
+                            <main style="padding: 20px; text-align: left;">
+                                <h3>Pipeline Status: <span style="color: ${bannerColor};">${pipelineStatus.toUpperCase()}</span></h3>
+                                <p>The build has completed with the status <b>${pipelineStatus.toUpperCase()}</b>. You can find the details in the Jenkins console output.</p>
+                                <p style="text-align: center;">
+                                    <a href="${BUILD_URL}" style="display: inline-block; padding: 10px 20px; background-color: ${bannerColor}; color: ${textColor}; text-decoration: none; border-radius: 4px;">View Console Output</a>
+                                </p>
+                            </main>
+                            <footer style="background-color: #f0f0f0; padding: 10px; text-align: center; font-size: 12px; color: #888;">
+                                <p>Sent by Jenkins CI/CD System</p>
+                            </footer>
+                        </div>
+                    </body>
+                    </html>
+                """
+
+                emailext(
+                    subject: "${jobName} - Build #${buildNumber} - ${pipelineStatus.toUpperCase()}",
+                    body: body,
+                    to: 'sujalsharma@gmail.com',
+                    from: 'techsharma@gmail.com',
+                    replyTo: 'sujalsharma@gmail.com',
+                    mimeType: 'text/html',
+                    attachmentsPattern: 'trivy-image-report.html'
+                )
+            }
+        }
+    }
+}

@@ -1,0 +1,8 @@
+alertmanager:
+  config:
+    global:
+      smtp_smarthost: "smtp.gmail.com:587"
+      smtp_from: "techsharma53@gmail.com"
+      smtp_auth_username: "techsharma53@gmail.com"
+      smtp_auth_password: "csvdmvyncmjovwwx"
+      smtp_require_tls: true

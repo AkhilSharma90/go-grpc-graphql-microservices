@@ -1,0 +1,9 @@
+grafana:
+  grafana.ini:
+    smtp:
+      enabled: true
+      host: smtp.gmail.com:587
+      user: techsharma53@gmail.com
+      password: csvdmvyncmjovwwx
+      from_address: techsharma53@gmail.com
+      startTLS_policy: "Always"

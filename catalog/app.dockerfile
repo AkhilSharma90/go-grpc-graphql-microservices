@@ -1,4 +1,4 @@
-FROM golang:1.13-alpine3.11 AS build
+FROM golang:1.20-alpine AS build
 RUN apk --no-cache add gcc g++ make ca-certificates
 WORKDIR /go/src/github.com/akhilsharma90/go-graphql-microservice
 COPY go.mod go.sum ./
